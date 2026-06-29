@@ -1,0 +1,975 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+ url      = env("MONGODB_CNN")
+}
+
+enum UserType {
+  USER
+  BUSINESS
+  REFUGIO
+  ADMIN
+}
+
+model Image {
+  uid                     String          @id @default(auto()) @map("_id") @db.ObjectId
+  user                    String          @db.ObjectId
+  userCross               User            @relation(fields: [user], references: [uid])
+  pet                     String?         @db.ObjectId
+  petCross                Pet?            @relation(fields: [pet], references: [uid])
+  img                     String?
+  bigUrlshort             String?
+  smallUrlshort           String?
+  status                  Boolean         @default(true)
+  descripcion             String?
+  charged                 DateTime        @default(now())
+  actionPlan              String          @default("IMAGE")
+  fechaEvento             DateTime?
+  longitudeEvento         Float?
+  lantitudeEvento         Float?
+  horaEvento              String?
+  phone                   String?
+  namePet                 String?
+  finalUserVisibleAddress String?
+  finalUserVisibleDate    String?
+  alerts                  Alerts[]
+  likes                   Like[]
+  cardOpeningsPetLost     cardOpeningsPetLost[] @relation("PetLostOpening")
+  Notifications           Notifications[]
+  Comments                Comments[]
+
+  @@index([user, pet])
+  @@map("images")
+}
+
+model Pet {
+  uid              String    @id @default(auto()) @map("_id") @db.ObjectId
+  user             String    @db.ObjectId
+  userCross        User      @relation(fields: [user], references: [uid])
+  nombre           String
+  sexo             String?
+  tipo             String
+  edad             DateTime?
+  status           Boolean   @default(true)
+  raza             String    @default("Otro")
+  descripcion      String?
+  perdido          Boolean   @default(false)
+  img              String?
+  fechaPerdida     DateTime?
+  horaPerdida      String?
+  longitudePerdida Float?
+  lantitudePerdida Float?
+  created          DateTime  @default(now())
+  Image            Image[]
+  cardOpeningsPetLost     cardOpeningsPetLost[] @relation("PetLostOpening")
+
+  @@index([user])
+  @@map("pets")
+}
+
+model User {
+  uid                        String                       @id @default(auto()) @map("_id") @db.ObjectId
+  nombre                     String
+  sexo                       String                       @default("Otro")
+  password                   String?
+  email                      String                       @unique
+  latitude                   Float?
+  longitude                  Float?
+  edad                       DateTime?
+  role                       String                       @default("MASCOTA")
+  status                     Boolean                      @default(true)
+  google                     Boolean                      @default(false)
+  descripcion                String?
+  img                        String?
+  logoPerfil                 String?
+  created                    DateTime                     @default(now())
+  googleUserId               String?
+  type                       UserType                     @default(USER)
+  businessProfile            BusinessProfile?
+  posts                      Image[]
+  pets                       Pet[]
+  Alerts                     Alerts[]
+  Reports                    Report[]                     @relation("UserReported")
+  ReportsBy                  Report[]                     @relation("UserReporting")
+  recoveryPassword           RecoveryPassword[]
+  userConnected              UserConnect[]
+  likes                      Like[]
+  notifications              Notifications[]              @relation("UserOwner")
+  notificationsBy            Notifications[]              @relation("UserSender")
+  deleteUserReasons          DeleteUserReasons[]
+  commentsAdmin              CommentsAdmin[]
+  comments                   Comments[]
+  commentsChildren           CommentsChildren[]
+  LikeComments               LikeComments[]
+  LikeCommentsChildren       LikeCommentsChildren[]
+  PawsCount                  PawsCount[]
+  TokenPoint                 TokenPoint[]
+  CountLikes                 CountLikes[]                 @relation("user")
+  CountLikesBy               CountLikes[]                 @relation("UserSender")
+  CountComments              CountComments[]
+  CountVideos                CountVideos[]
+  CountImage                 CountImage[]
+  TasksByUser                TasksByUser[]
+  Ranking                    Ranking[]
+  LikesRefugios              LikesRefugios[]              @relation("UserOwner")
+  LikesEvent                 LikesEvent[]                 @relation("UserOwner")
+  LikesPetshops              LikesPetshops[]              @relation("UserOwner")
+  LikesCenterVet             LikesCenterVet[]             @relation("UserOwner")
+  CardOpeningsRefugios       CardOpeningsRefugios[]       @relation("UserOwner")
+  WhatsAppRedirectsRefugios  WhatsAppRedirectsRefugios[]  @relation("UserOwner")
+  CardOpeningsEvent          CardOpeningsEvent[]          @relation("UserOwner")
+  WhatsAppRedirectsEvent     WhatsAppRedirectsEvent[]     @relation("UserOwner")
+  CardOpeningsPetshops       CardOpeningsPetshops[]       @relation("UserOwner")
+  WhatsAppRedirectsPetshops  WhatsAppRedirectsPetshops[]  @relation("UserOwner")
+  CardOpeningsCenterVet      CardOpeningsCenterVet[]      @relation("UserOwner")
+  WhatsAppRedirectsCenterVet WhatsAppRedirectsCenterVet[] @relation("UserOwner")
+  CardOpeningsPetLost        cardOpeningsPetLost[]        @relation("UserOwner")
+  products                   Product[]
+  orders                     Order[]
+  marketplaceFees            MarketplaceFee[]
+  subscriptions              Subscription[]
+
+  @@map("users")
+}
+
+model Alerts {
+  uid         String   @id @default(auto()) @map("_id") @db.ObjectId
+  user        String   @db.ObjectId
+  userCross   User     @relation(fields: [user], references: [uid])
+  uidImg      String   @db.ObjectId
+  uidImgCroos Image    @relation(fields: [uidImg], references: [uid])
+  alert       Int?
+  note        String
+  status      Boolean  @default(true)
+  charged     DateTime @default(now())
+
+  @@index([user, uidImg])
+  @@map("alerts")
+}
+
+model Report {
+  uid               String   @id @default(auto()) @map("_id") @db.ObjectId
+  user              String   @db.ObjectId
+  userCross         User     @relation("UserReporting", fields: [user], references: [uid])
+  userReported      String   @db.ObjectId
+  userReportedCross User     @relation("UserReported", fields: [userReported], references: [uid])
+  note              String
+  status            Boolean  @default(true)
+  charged           DateTime @default(now())
+
+  @@index([user, userReported])
+  @@map("reports")
+}
+
+model Sexo {
+  uid  String @id @default(auto()) @map("_id") @db.ObjectId
+  sexo String
+
+  @@map("sexos")
+}
+
+model Tipo {
+  uid  String @id @default(auto()) @map("_id") @db.ObjectId
+  tipo String
+
+  @@map("tipos")
+}
+
+model Role {
+  uid  String @id @default(auto()) @map("_id") @db.ObjectId
+  role String
+
+  @@map("roles")
+}
+
+model RecoveryPassword {
+  uid       String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      String   @db.ObjectId
+  userCross User     @relation(fields: [user], references: [uid])
+  code      Int?
+  status    Boolean  @default(true)
+  charged   DateTime @default(now())
+
+  @@index([user, charged])
+  @@map("recoverypasswords")
+}
+
+model Raza {
+  uid  String @id @default(auto()) @map("_id") @db.ObjectId
+  raza String
+
+  @@map("razas")
+}
+
+model Pais {
+  uid  String @id @default(auto()) @map("_id") @db.ObjectId
+  pais String
+
+  @@map("pais")
+}
+
+model UserConnect {
+  uid           String   @id @default(auto()) @map("_id") @db.ObjectId
+  user          String   @db.ObjectId
+  userCross     User     @relation(fields: [user], references: [uid])
+  statusConnect Boolean  @default(true)
+  created       DateTime @default(now())
+
+  @@index([user])
+  @@map("userconnects")
+}
+
+model Like {
+  uid       String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      String   @db.ObjectId
+  userCross User     @relation(fields: [user], references: [uid])
+  uidImg    String   @db.ObjectId
+  image     Image    @relation(fields: [uidImg], references: [uid])
+  like      Int?
+  status    Boolean  @default(true)
+  charged   DateTime @default(now())
+
+  @@index([user, uidImg])
+  @@map("likes")
+}
+
+model Notifications {
+  uid             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userOwner       String   @db.ObjectId
+  userOwnerCross  User     @relation("UserOwner", fields: [userOwner], references: [uid])
+  uidImg          String   @db.ObjectId
+  image           Image    @relation(fields: [uidImg], references: [uid])
+  userSender      String   @db.ObjectId
+  userSenderCross User     @relation("UserSender", fields: [userSender], references: [uid])
+  event           String
+  statusSeen      Boolean  @default(false)
+  status          Boolean  @default(true)
+  charged         DateTime @default(now())
+
+  @@index([userOwner, uidImg, userSender])
+  @@map("notifications")
+}
+
+model DeleteUserReasons {
+  uid       String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      String   @db.ObjectId
+  userCross User     @relation(fields: [user], references: [uid])
+  alert     Int?
+  note      String
+  status    Boolean  @default(true)
+  charged   DateTime @default(now())
+
+  @@index([user])
+  @@map("deleteuserreasons")
+}
+
+model ActionPlan {
+  uid        String @id @default(auto()) @map("_id") @db.ObjectId
+  actionPlan String
+
+  @@map("actionplans")
+}
+
+model CommentsAdmin {
+  uid       String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      String   @db.ObjectId
+  userCross User     @relation(fields: [user], references: [uid])
+  comments  String?
+  status    Boolean  @default(true)
+  charged   DateTime @default(now())
+
+  @@index([user])
+  @@map("commentsadmins")
+}
+
+model Comments {
+  uid              String             @id @default(auto()) @map("_id") @db.ObjectId
+  user             String             @db.ObjectId
+  userCross        User               @relation(fields: [user], references: [uid])
+  uidImg           String?            @db.ObjectId
+  image            Image?             @relation(fields: [uidImg], references: [uid])
+  uidNews          String?            @db.ObjectId
+  news             News?              @relation(fields: [uidNews], references: [uid])
+  contentType      String             @default("IMAGE") // IMAGE | NEWS
+  comments         String?
+  status           Boolean            @default(true)
+  charged          DateTime           @default(now())
+  commentsChildren CommentsChildren[]
+  LikeComments     LikeComments[]
+
+  @@index([uidImg])
+  @@index([uidNews])
+  @@index([user])
+  @@map("comments")
+}
+
+model CommentsChildren {
+  uid                  String                 @id @default(auto()) @map("_id") @db.ObjectId
+  user                 String                 @db.ObjectId
+  userCross            User                   @relation(fields: [user], references: [uid])
+  uidCommentsFather    String                 @db.ObjectId
+  commentsFather       Comments               @relation(fields: [uidCommentsFather], references: [uid])
+  comments             String?
+  status               Boolean                @default(true)
+  charged              DateTime               @default(now())
+  LikeCommentsChildren LikeCommentsChildren[]
+
+  @@index([user, uidCommentsFather])
+  @@map("commentschildrens")
+}
+
+model LikeComments {
+  uid         String   @id @default(auto()) @map("_id") @db.ObjectId
+  user        String   @db.ObjectId
+  userCross   User     @relation(fields: [user], references: [uid])
+  uidComments String   @db.ObjectId
+  comments    Comments @relation(fields: [uidComments], references: [uid])
+  like        Int?
+  status      Boolean  @default(true)
+  charged     DateTime @default(now())
+
+  @@index([user, uidComments])
+  @@map("likecomments")
+}
+
+model LikeCommentsChildren {
+  uid              String           @id @default(auto()) @map("_id") @db.ObjectId
+  user             String           @db.ObjectId
+  userCross        User             @relation(fields: [user], references: [uid])
+  uidComments      String           @db.ObjectId
+  commentsChildren CommentsChildren @relation(fields: [uidComments], references: [uid])
+  like             Int?
+  status           Boolean          @default(true)
+  charged          DateTime         @default(now())
+
+  @@index([user, uidComments])
+  @@map("likecommentschildrens")
+}
+
+model PawsCount {
+  uid        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       String   @db.ObjectId
+  userCross  User     @relation(fields: [user], references: [uid])
+  paws       Int?     @default(0)
+  status     Boolean  @default(true)
+  lastUpdate DateTime
+
+  @@index([user])
+  @@map("pawscounts")
+}
+
+model TokenPoint {
+  uid            String   @id @default(auto()) @map("_id") @db.ObjectId
+  user           String   @db.ObjectId
+  userCross      User     @relation(fields: [user], references: [uid])
+  points         Int?     @default(0)
+  deliveryNumber Int?     @default(0)
+  status         Boolean  @default(true)
+  lastUpdate     DateTime
+
+  @@index([user])
+  @@map("tokenpoints")
+}
+
+model ElementMapRefugios {
+  uid                       String                      @id @default(auto()) @map("_id") @db.ObjectId
+  //uidProfileRefugios   String         @db.ObjectId
+  //ProfileRefugiosCross ProfileRefugios @relation(fields: [uidProfileRefugios], references: [uid])
+  nombre                    String?
+  latitude                  Float?
+  longitude                 Float?
+  role                      String                      @default("REFUGIOS")
+  status                    Boolean                     @default(true)
+  descripcion               String?
+  img                       String?
+  weekOpening               String?
+  weekClosing               String?
+  dateAttentionWeek         String?
+  weekendOpening            String?
+  weekendClosing            String?
+  dateAttentionWeekend      String?
+  phone                     Int?
+  email                     String?
+  created                   DateTime                    @default(now())
+  LikesRefugios             LikesRefugios[]             @relation("Refugios")
+  CardOpeningsRefugios      CardOpeningsRefugios[]      @relation("RefugiosOpening")
+  WhatsAppRedirectsRefugios WhatsAppRedirectsRefugios[] @relation("Refugios")
+  CountLikesRefugios        CountLikesRefugios[]        @relation("Refugios")
+
+  @@map("elementmaprefugios")
+}
+
+model ElementMapEvent {
+  uid                    String                   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre                 String?
+  latitude               Float?
+  longitude              Float?
+  role                   String                   @default("Event")
+  status                 Boolean                  @default(true)
+  descripcion            String?
+  img                    String?
+  weekOpening            String?
+  weekClosing            String?
+  dateAttentionWeek      String?
+  weekendOpening         String?
+  weekendClosing         String?
+  dateAttentionWeekend   String?
+  phone                  Int?
+  email                  String?
+  created                DateTime                 @default(now())
+  LikesEvent             LikesEvent[]             @relation("Event")
+  CardOpeningsEvent      CardOpeningsEvent[]      @relation("EventOpening")
+  WhatsAppRedirectsEvent WhatsAppRedirectsEvent[] @relation("Event")
+  CountLikesEvent        CountLikesEvent[]        @relation("Event")
+
+  @@map("elementmapevent")
+}
+
+model ElementMapPetshops {
+  uid                       String                      @id @default(auto()) @map("_id") @db.ObjectId
+  nombre                    String?
+  latitude                  Float?
+  longitude                 Float?
+  role                      String                      @default("Petshops")
+  status                    Boolean                     @default(true)
+  descripcion               String?
+  img                       String?
+  weekOpening               String?
+  weekClosing               String?
+  dateAttentionWeek         String?
+  weekendOpening            String?
+  weekendClosing            String?
+  dateAttentionWeekend      String?
+  phone                     Int?
+  email                     String?
+  created                   DateTime                    @default(now())
+  LikesPetshops             LikesPetshops[]             @relation("PetShops")
+  CardOpeningsPetshops      CardOpeningsPetshops[]      @relation("PetShopsOpening")
+  WhatsAppRedirectsPetshops WhatsAppRedirectsPetshops[] @relation("PetShops")
+  CountLikesPetshop         CountLikesPetshop[]         @relation("PetShops")
+
+  @@map("elementmapetshops")
+}
+
+model ElementMapcenterVet {
+  uid                        String                       @id @default(auto()) @map("_id") @db.ObjectId
+  nombre                     String?
+  latitude                   Float?
+  longitude                  Float?
+  role                       String                       @default("CenterVet")
+  status                     Boolean                      @default(true)
+  descripcion                String?
+  img                        String?
+  weekOpening                String?
+  weekClosing                String?
+  dateAttentionWeek          String?
+  weekendOpening             String?
+  weekendClosing             String?
+  dateAttentionWeekend       String?
+  phone                      Int?
+  email                      String?
+  created                    DateTime                     @default(now())
+  LikesCenterVet             LikesCenterVet[]             @relation("CenterVet")
+  CardOpeningsCenterVet      CardOpeningsCenterVet[]      @relation("CenterVetOpening")
+  WhatsAppRedirectsCenterVet WhatsAppRedirectsCenterVet[] @relation("CenterVet")
+  CountLikesCenterVet        CountLikesCenterVet[]        @relation("CenterVet")
+
+  @@map("elementmapcentervet")
+}
+
+/**
+ * model ProfileRefugios {
+ * uid                String   @id @default(auto()) @map("_id") @db.ObjectId
+ * nombre             String
+ * password           String?
+ * category           String?
+ * email              String   @unique
+ * latitude           Float?
+ * longitude          Float?
+ * role               String   @default("REFUGIOS")
+ * status             Boolean  @default(true)
+ * google             Boolean  @default(false)
+ * descripcion        String?
+ * img                String?
+ * attention          String?
+ * logoPerfil         String?
+ * created            DateTime @default(now())
+ * googleUserId       String?
+ * representanteLegal String?
+ * documento1         String?
+ * documento2         String?
+ * codeVerify         Boolean  @default(false)
+ * //elementMapRefugios ElementMapRefugios[]
+ * @@map("profilerefugios")
+ * }
+ */
+model CountLikes {
+  uid             String   @id @default(auto()) @map("_id") @db.ObjectId
+  user            String   @db.ObjectId
+  userCross       User     @relation("user", fields: [user], references: [uid])
+  userSender      String   @db.ObjectId
+  userSenderCross User     @relation("UserSender", fields: [userSender], references: [uid])
+  like            Int?     @default(0)
+  status          Boolean  @default(true)
+  created         DateTime @default(now())
+
+  @@index([user, userSender])
+  @@map("countlikes")
+}
+
+model CountVideos {
+  uid        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       String   @db.ObjectId
+  userCross  User     @relation(fields: [user], references: [uid])
+  videos     Int?     @default(0)
+  status     Boolean  @default(true)
+  lastUpdate DateTime
+
+  @@index([user])
+  @@map("countvideos")
+}
+
+model CountImage {
+  uid        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       String   @db.ObjectId
+  userCross  User     @relation(fields: [user], references: [uid])
+  images     Int?     @default(0)
+  status     Boolean  @default(true)
+  lastUpdate DateTime
+
+  @@index([user])
+  @@map("countimage")
+}
+
+model CountComments {
+  uid        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       String   @db.ObjectId
+  userCross  User     @relation(fields: [user], references: [uid])
+  comments   Int?     @default(0)
+  status     Boolean  @default(true)
+  lastUpdate DateTime
+
+  @@index([user])
+  @@map("countcomments")
+}
+
+model Tasks {
+  uid         String        @id @default(auto()) @map("_id") @db.ObjectId
+  subject     String
+  description String
+  reward      Float         @default(0)
+  type        Int
+  target      Int
+  status      Boolean       @default(true)
+  created     DateTime      @default(now())
+  TasksByUser TasksByUser[]
+
+  @@map("tasks")
+}
+
+model TasksByUser {
+  uid        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       String   @db.ObjectId
+  userCross  User     @relation(fields: [user], references: [uid])
+  uidTask    String   @db.ObjectId
+  taskCross  Tasks    @relation(fields: [uidTask], references: [uid])
+  type       Int
+  point      Int      @default(0)
+  status     Boolean  @default(true)
+  created    DateTime @default(now())
+  lastUpdate DateTime
+
+  @@index([user, uidTask])
+  @@map("tasksByUser")
+}
+
+model Ranking {
+  uid       String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      String   @db.ObjectId
+  userCross User     @relation(fields: [user], references: [uid])
+  position  Int      @default(0)
+  status    Boolean  @default(true)
+  created   DateTime @default(now())
+
+  @@map("ranking")
+}
+
+model TokenNotificationsRemote {
+  uid     String   @id @default(auto()) @map("_id") @db.ObjectId
+  token   String
+  created DateTime @default(now())
+
+  @@map("tokenNotificationsRemote")
+}
+
+model cardOpeningsPetLost {
+  uid               String             @id @default(auto()) @map("_id") @db.ObjectId
+  imagePetLostID    String             @db.ObjectId
+  imagePetLostCross Image              @relation("PetLostOpening", fields: [imagePetLostID], references: [uid])
+  user              String             @db.ObjectId
+  userCross         User               @relation("UserOwner", fields: [user], references: [uid])
+  petId             String?   @db.ObjectId
+  petCross          Pet?      @relation("PetLostOpening", fields: [petId], references: [uid])
+  interaction       Int?
+  status            Boolean            @default(true)
+  charged           DateTime           @default(now())
+
+  //@@unique([imagePetLostID, user])
+  @@map("cardOpeningsPetLost")
+}
+
+model InitialSurvey {
+  uid     String   @id @default(auto()) @map("_id") @db.ObjectId
+  user    String   @db.ObjectId
+  survey  String
+  created DateTime @default(now())
+
+  @@map("initialSurvey")
+}
+
+model LikesRefugios {
+  uid          String             @id @default(auto()) @map("_id") @db.ObjectId
+  refugioId    String             @db.ObjectId
+  refugioCross ElementMapRefugios @relation("Refugios", fields: [refugioId], references: [uid])
+  user         String             @db.ObjectId
+  userCross    User               @relation("UserOwner", fields: [user], references: [uid])
+  like         Int?
+  status       Boolean            @default(true)
+  charged      DateTime           @default(now())
+
+  //@@unique([refugioId, user])
+  @@map("likesRefugios")
+}
+
+model CardOpeningsRefugios {
+  uid          String             @id @default(auto()) @map("_id") @db.ObjectId
+  refugioId    String             @db.ObjectId
+  refugioCross ElementMapRefugios @relation("RefugiosOpening", fields: [refugioId], references: [uid])
+  user         String             @db.ObjectId
+  userCross    User               @relation("UserOwner", fields: [user], references: [uid])
+  interaction  Int?
+  status       Boolean            @default(true)
+  charged      DateTime           @default(now())
+
+  //@@unique([refugioId, user])
+  @@map("cardOpeningsRefugios")
+}
+
+model WhatsAppRedirectsRefugios {
+  uid          String             @id @default(auto()) @map("_id") @db.ObjectId
+  refugioId    String             @db.ObjectId
+  refugioCross ElementMapRefugios @relation("Refugios", fields: [refugioId], references: [uid])
+  user         String             @db.ObjectId
+  userCross    User               @relation("UserOwner", fields: [user], references: [uid])
+  interaction  Int?
+  status       Boolean            @default(true)
+  charged      DateTime           @default(now())
+
+  //@@unique([refugioId, user])
+  @@map("whatsAppRedirectsRefugios")
+}
+
+model LikesEvent {
+  uid        String          @id @default(auto()) @map("_id") @db.ObjectId
+  eventId    String          @db.ObjectId
+  eventCross ElementMapEvent @relation("Event", fields: [eventId], references: [uid])
+  user       String          @db.ObjectId
+  userCross  User            @relation("UserOwner", fields: [user], references: [uid])
+  like       Int?
+  status     Boolean         @default(true)
+  charged    DateTime        @default(now())
+
+  //@@unique([eventId, user])
+  @@map("likesEvent")
+}
+
+model CardOpeningsEvent {
+  uid         String          @id @default(auto()) @map("_id") @db.ObjectId
+  eventId     String          @db.ObjectId
+  eventCross  ElementMapEvent @relation("EventOpening", fields: [eventId], references: [uid])
+  user        String          @db.ObjectId
+  userCross   User            @relation("UserOwner", fields: [user], references: [uid])
+  interaction Int?
+  status      Boolean         @default(true)
+  charged     DateTime        @default(now())
+
+  //@@unique([eventId, user])
+  @@map("cardOpeningsEvent")
+}
+
+model WhatsAppRedirectsEvent {
+  uid         String          @id @default(auto()) @map("_id") @db.ObjectId
+  eventId     String          @db.ObjectId
+  eventCross  ElementMapEvent @relation("Event", fields: [eventId], references: [uid])
+  user        String          @db.ObjectId
+  userCross   User            @relation("UserOwner", fields: [user], references: [uid])
+  interaction Int?
+  status      Boolean         @default(true)
+  charged     DateTime        @default(now())
+
+  //@@unique([eventId, user])
+  @@map("whatsAppRedirectsEvent")
+}
+
+model LikesPetshops {
+  uid          String             @id @default(auto()) @map("_id") @db.ObjectId
+  petshopId    String             @db.ObjectId
+  petshopCross ElementMapPetshops @relation("PetShops", fields: [petshopId], references: [uid])
+  user         String             @db.ObjectId
+  userCross    User               @relation("UserOwner", fields: [user], references: [uid])
+  like         Int?
+  status       Boolean            @default(true)
+  charged      DateTime           @default(now())
+
+  //@@unique([petshopId, user])
+  @@map("likesPetshops")
+}
+
+model CardOpeningsPetshops {
+  uid          String             @id @default(auto()) @map("_id") @db.ObjectId
+  petshopId    String             @db.ObjectId
+  petshopCross ElementMapPetshops @relation("PetShopsOpening", fields: [petshopId], references: [uid])
+  user         String             @db.ObjectId
+  userCross    User               @relation("UserOwner", fields: [user], references: [uid])
+  interaction  Int?
+  status       Boolean            @default(true)
+  charged      DateTime           @default(now())
+
+  //@@unique([petshopId, user])
+  @@map("cardOpeningsPetshops")
+}
+
+model WhatsAppRedirectsPetshops {
+  uid          String             @id @default(auto()) @map("_id") @db.ObjectId
+  petshopId    String             @db.ObjectId
+  petshopCross ElementMapPetshops @relation("PetShops", fields: [petshopId], references: [uid])
+  user         String             @db.ObjectId
+  userCross    User               @relation("UserOwner", fields: [user], references: [uid])
+  interaction  Int?
+  status       Boolean            @default(true)
+  charged      DateTime           @default(now())
+
+  //@@unique([petshopId, user])
+  @@map("whatsAppRedirectsPetshops")
+}
+
+model LikesCenterVet {
+  uid            String              @id @default(auto()) @map("_id") @db.ObjectId
+  centerVetId    String              @db.ObjectId
+  centerVetCross ElementMapcenterVet @relation("CenterVet", fields: [centerVetId], references: [uid])
+  user           String              @db.ObjectId
+  userCross      User                @relation("UserOwner", fields: [user], references: [uid])
+  like           Int?
+  status         Boolean             @default(true)
+  charged        DateTime            @default(now())
+
+  //@@unique([centerVetId, user])
+  @@map("likesCenterVet")
+}
+
+model CardOpeningsCenterVet {
+  uid            String              @id @default(auto()) @map("_id") @db.ObjectId
+  centerVetId    String              @db.ObjectId
+  centerVetCross ElementMapcenterVet @relation("CenterVetOpening", fields: [centerVetId], references: [uid])
+  user           String              @db.ObjectId
+  userCross      User                @relation("UserOwner", fields: [user], references: [uid])
+  interaction    Int?
+  status         Boolean             @default(true)
+  charged        DateTime            @default(now())
+
+  //@@unique([centerVetId, user])
+  @@map("cardOpeningsCenterVet")
+}
+
+model WhatsAppRedirectsCenterVet {
+  uid            String              @id @default(auto()) @map("_id") @db.ObjectId
+  centerVetId    String              @db.ObjectId
+  centerVetCross ElementMapcenterVet @relation("CenterVet", fields: [centerVetId], references: [uid])
+  user           String              @db.ObjectId
+  userCross      User                @relation("UserOwner", fields: [user], references: [uid])
+  interaction    Int?
+  status         Boolean             @default(true)
+  charged        DateTime            @default(now())
+
+  //@@unique([centerVetId, user])
+  @@map("whatsAppRedirectsCenterVet")
+}
+
+model CountLikesCenterVet {
+  uid            String              @id @default(auto()) @map("_id") @db.ObjectId
+  centerVetId    String              @db.ObjectId
+  centerVetCross ElementMapcenterVet @relation("CenterVet", fields: [centerVetId], references: [uid])
+  likes          Int?
+  updatedAt      DateTime            @updatedAt
+
+  @@map("countLikesCenterVet")
+}
+
+model CountLikesEvent {
+  uid        String          @id @default(auto()) @map("_id") @db.ObjectId
+  eventId    String          @db.ObjectId
+  eventCross ElementMapEvent @relation("Event", fields: [eventId], references: [uid])
+  likes      Int?
+  updatedAt  DateTime        @updatedAt
+
+  @@map("countLikesEvent")
+}
+
+model CountLikesPetshop {
+  uid          String             @id @default(auto()) @map("_id") @db.ObjectId
+  petshopId    String             @db.ObjectId
+  petshopCross ElementMapPetshops @relation("PetShops", fields: [petshopId], references: [uid])
+  likes        Int?
+  updatedAt    DateTime           @updatedAt
+
+  @@map("countLikesPetshop")
+}
+
+model CountLikesRefugios {
+  uid          String             @id @default(auto()) @map("_id") @db.ObjectId
+  refugioId    String             @db.ObjectId
+  refugioCross ElementMapRefugios @relation("Refugios", fields: [refugioId], references: [uid])
+  likes        Int?
+  updatedAt    DateTime           @updatedAt
+
+  @@map("countLikesRefugios")
+}
+
+model News {
+  uid           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  bigUrlshort   String
+  smallUrlshort String?
+  descripcion   String?
+  status        Boolean  @default(true)
+  charged       DateTime @default(now())
+  actionPlan    String   @default("NEW")
+
+  comments Comments[]
+
+  @@map("news")
+}
+
+model BusinessProfile {
+  uid    String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [uid])
+
+  businessName String
+  ruc          String?
+  address      String?
+  phone        String?
+  verified     Boolean @default(false)
+
+  created DateTime @default(now())
+
+  @@unique([userId])
+  @@map("businessprofiles")
+}
+
+model Product {
+  uid     String @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId String @db.ObjectId
+  owner   User   @relation(fields: [ownerId], references: [uid])
+
+  name        String
+  description String?
+  price       Float
+  stock       Int     @default(0)
+
+  image  String?
+  status Boolean @default(true)
+
+  created DateTime @default(now())
+
+  orders OrderItem[]
+
+  @@index([ownerId])
+  @@map("products")
+}
+
+model Order {
+  uid     String @id @default(auto()) @map("_id") @db.ObjectId
+  buyerId String @db.ObjectId
+  buyer   User   @relation(fields: [buyerId], references: [uid])
+
+  total  Float
+  status String @default("PENDING")
+
+  paymentId String?
+  created   DateTime @default(now())
+
+  items           OrderItem[]
+  payments        Payment[]
+  marketplaceFees MarketplaceFee[]
+
+  @@index([buyerId])
+  @@map("orders")
+}
+
+model OrderItem {
+  uid     String @id @default(auto()) @map("_id") @db.ObjectId
+  orderId String @db.ObjectId
+  order   Order  @relation(fields: [orderId], references: [uid])
+
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [uid])
+
+  price    Float
+  quantity Int
+
+  @@map("orderitems")
+}
+
+model Payment {
+  uid     String @id @default(auto()) @map("_id") @db.ObjectId
+  orderId String @db.ObjectId
+  order   Order  @relation(fields: [orderId], references: [uid])
+
+  gateway    String // stripe | mercadopago | etc
+  externalId String // id del pago externo
+  amount     Float
+  status     String
+
+  created DateTime @default(now())
+
+  @@index([orderId])
+  @@map("payments")
+}
+
+model MarketplaceFee {
+  uid String @id @default(auto()) @map("_id") @db.ObjectId
+
+  orderId String @db.ObjectId
+  order   Order  @relation(fields: [orderId], references: [uid])
+
+  businessId String @db.ObjectId
+  business   User   @relation(fields: [businessId], references: [uid])
+
+  feeAmount Float
+  percent   Float
+
+  paid Boolean @default(false)
+
+  created DateTime @default(now())
+
+  @@map("marketplacefees")
+}
+
+model Subscription {
+  uid    String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [uid])
+
+  plan      String
+  price     Float
+  startDate DateTime
+  endDate   DateTime
+
+  active Boolean @default(true)
+
+  @@map("subscriptions")
+}
