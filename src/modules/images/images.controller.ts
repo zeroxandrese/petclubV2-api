@@ -20,7 +20,7 @@ import { GetUser } from '../../common/decorators/get-user.decorator';
 import { CreateImageDto } from './dto/create-image.dto';
 
 @Controller('images')
-//@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 

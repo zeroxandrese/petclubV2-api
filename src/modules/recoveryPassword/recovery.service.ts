@@ -30,10 +30,10 @@ export class RecoveryService {
             data: { user: user.uid, code }
         });
 
-        await resend.emails.send({
+        await this.resend.emails.send({
             from: "petClub <admin@petclub.com.pe>",
             to: `${email}`,
-            reply_to: "contacto@petclub.com.pe",
+            replyTo: "contacto@petclub.com.pe",
             subject: "Recupera tu clave de acceso en petClub",
             html: `    <html>
             <head>
